@@ -13,4 +13,3 @@ export default new Router({
     }
   ]
 })
-s
