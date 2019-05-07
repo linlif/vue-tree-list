@@ -7,7 +7,8 @@
            :class="isClicked?'is-expanded is-current':''">
         <i v-if="list.children"
            class="iconfont"
-           :class="isClicked?'iconsanjiaoright':'iconsanjiaodown'"></i>
+           :class="isCurrent?'iconsanjiaoright':'iconsanjiaodown'"></i>
+        <input type="checkbox" />
         <span class="tree-label">{{list.label}}</span>
       </div>
       <div class="group"
@@ -23,6 +24,8 @@
 </template>
 
 <script>
+  let selectedId = ''
+  let rootTree = ''
   export default {
     name: 'tree-menu',
     props: {
@@ -74,7 +77,9 @@
     data () {
       return {
         isClicked: false,
-        open: true,
+        currentId: '',
+        isCurrent: true,
+        open: false,
       }
     },
     computed: {
@@ -83,29 +88,42 @@
       }
     },
     created () {
-      // console.log('this.$options', this.$options)
-      const rootNode = this.findRoot(this)
-      // console.log(rootNode)
+      rootTree = this.findRoot(this)
+      // console.log(rootTree)
     },
     methods: {
       increaseDepth () {
         return this.depth + 1
       },
       showSubMenu (item, event) {
-        console.log(item)
-        this.isClicked = !this.isClicked
+        console.log(event)
         if (this.isFolder) {
           this.open = !this.open
         }
-        // console.log('this.$options', this.$options)
+        // 遍历所有节点，设置未点击的节点为未点击状态
+        let treeParent = rootTree.$parent
+        for (let i = 0; i < treeParent.$children.length; i++) {
+          if (selectedId !== this.list.id) {
+            let nodeStack = [treeParent.$children[i]]
+            while (nodeStack.length != 0) {
+              let item = nodeStack.shift()
+              item.isClicked = false
+              if (item.$children && item.$children.length > 0) {
+                nodeStack = nodeStack.concat(item.$children)
+              }
+            }
+          }
+        }
+        this.currentId = item.id
+        selectedId = this.list.id
+        this.isClicked = true
+        this.isCurrent = !this.isCurrent
       },
       // 返回最顶层那个组件
       findRoot (which) {
         let ok = false
         let that = which
-        // console.log(that)
         while (!ok) {
-          console.log(that)
           // 根据组件name来判断
           if (that.$options._componentTag === 'treeMenu') {
             ok = true
