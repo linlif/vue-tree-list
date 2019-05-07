@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import treeList from '@/components/tree-list'
+import demo from '../demo'
 
 Vue.use(Router)
 
@@ -8,8 +8,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'treeList',
-      component: treeList
+      name: 'demo',
+      component: demo
     }
   ]
 })
