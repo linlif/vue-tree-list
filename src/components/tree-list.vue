@@ -11,7 +11,7 @@
   import treeMenu from './tree-menu'
 
   export default {
-    name: 'tree-list',
+    name: 'treeList',
     props: {
       list: {
         type: Array,
