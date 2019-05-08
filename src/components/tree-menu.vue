@@ -11,9 +11,12 @@
         <input data-role="checkbox"
                type="checkbox"
                :id="'checkbox'+list.id"
+               style="display:none"
                v-model="checked">
         <label data-role="checkbox"
-               :for="'label'+list.id">{{checked}}</label>
+               class="iconfont tree-checkbox-icon"
+               :class="checkboxClass"
+               :for="'label'+list.id"></label>
         <span class="tree-label">{{list.label}}</span>
       </div>
       <div class="group"
@@ -84,16 +87,30 @@
         isClicked: false,
         isCurrent: true,
         open: false,
-        checked: false,
+        checked: '',
+        justUnselected: false // 是否刚刚取消的CheckBox，true时高亮边框，false时置灰边框
       }
     },
     computed: {
       isFolder () {
         return this.list.children && this.list.children.length
+      },
+      checkboxClass () {
+        if (this.checked === true) {
+          return 'iconround-check_box-px checked'
+        } else if (this.checked === 'some') {
+          return 'iconcheckbox-xuanzhongbufen some'
+        } else {
+          if (this.justUnselected) {
+            return 'iconround-check_box_outl just-unchecked'
+          } else {
+            return 'iconround-check_box_outl unchecked'
+          }
+        }
       }
     },
     created () {
-      rootTree = this.findNode(this)
+      rootTree = this.findNode(this, 'treeList')
     },
     methods: {
       increaseDepth () {
@@ -103,20 +120,24 @@
         const role = event.target.dataset.role
         // 如果点击的是checkbox
         if (role === 'checkbox' || role === 'label') {
-          let treeMenu = this.findNode(this)
+          let treeMenu = this.findNode(this, 'treeMenu')
           this.checked = !this.checked
-          this.selectChildrenNodes(treeMenu, this.checked, data.id)
+          this.selectChildrenNodes(treeMenu, this.checked)
+          this.handleSelect(treeMenu)
+          // 重置其他节点状态
+          this.nomalizeNodes(this, rootTree, true)
+          this.justUnselected = true
+          selectedId = this.list.id
           return
         } else {
-          const treeList = this.findNode(this, 'treeList')
           // 抛出事件
-          treeList.emitNodeClicked(data, this)
+          rootTree.emitNodeClicked(data, this)
           // 打开/关闭菜单
           if (this.isFolder) {
             this.open = !this.open
           }
           // 重置其他节点状态
-          this.nomalizeNodes(this, treeList)
+          this.nomalizeNodes(this, rootTree, false)
           selectedId = this.list.id
           this.isClicked = true
           this.isCurrent = !this.isCurrent
@@ -137,9 +158,8 @@
         }
         return that
       },
-      // 选中/取消选中所有子节点
-      selectChildrenNodes (component, state, clickedId) {
-        // 遍历所有节点，设置未点击的节点为未点击状态
+      // 选中/取消所有子节点
+      selectChildrenNodes (component, state) {
         let nodeStack = component.$children
         for (let i = 0; i < nodeStack.length; i++) {
           let item = nodeStack[i]
@@ -149,19 +169,39 @@
           }
         }
       },
-      // 把未点击的节点恢复未选中状态
-      nomalizeNodes (which, treeParent) {
+      // 处理组件的半选中状态
+      handleSelect (component) {
+        let parent = component.$parent
+        let allChecked = true
+        while (parent.$options._componentTag !== 'treeList') {
+          let parentChildren = parent.$children
+          for (let i = 0; i < parentChildren.length; i++) {
+            let item = parentChildren[i]
+            if (!item.checked || item.checked === 'some') {
+              allChecked = false
+            }
+          }
+          allChecked ? parent.checked = true : parent.checked = 'some'
+          parent = parent.$parent
+        }
+      },
+      // 未点击的节点置为未选中状态，点击非CheckBox取消边框高亮
+      nomalizeNodes (which, treeParent, isCheckBox = false) {
         const that = which
-        // 遍历所有节点，设置未点击的节点为未点击状态
         for (let i = 0; i < treeParent.$children.length; i++) {
-          if (selectedId !== that.list.id) {
-            let nodeStack = [treeParent.$children[i]]
-            while (nodeStack.length != 0) {
-              let item = nodeStack.shift()
+          let nodeStack = [treeParent.$children[i]]
+          while (nodeStack.length != 0) {
+            let item = nodeStack.shift()
+            if (selectedId !== that.list.id) {
               item.isClicked = false
-              if (item.$children && item.$children.length > 0) {
-                nodeStack = nodeStack.concat(item.$children)
+              item.justUnselected = false
+            } else {
+              if (!isCheckBox) {
+                item.justUnselected = false
               }
+            }
+            if (item.$children && item.$children.length > 0) {
+              nodeStack = nodeStack.concat(item.$children)
             }
           }
         }
@@ -201,5 +241,13 @@
   }
   .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
     height: 0;
+  }
+  .tree-checkbox-icon {
+    font-size: 18px;
+  }
+  .tree-checkbox-icon.checked,
+  .tree-checkbox-icon.just-unchecked,
+  .tree-checkbox-icon.some {
+    color: #409eff;
   }
 </style>
