@@ -13,69 +13,36 @@
   export default {
     name: 'treeList',
     props: {
-      list: {
-        type: Array,
-        default: () => {
-          [{
-            id: 1,
-            label: '一级 1',
-            children: [{
-              id: 4,
-              label: '二级 1-1',
-              children: [{
-                id: 9,
-                label: '三级 1-1-1'
-              }, {
-                id: 10,
-                label: '三级 1-1-2'
-              }]
-            }]
-          }, {
-            id: 2,
-            label: '一级 2',
-            children: [{
-              id: 5,
-              label: '二级 2-1'
-            }, {
-              id: 6,
-              label: '二级 2-2'
-            }]
-          }, {
-            id: 3,
-            label: '一级 3',
-            children: [{
-              id: 7,
-              label: '二级 3-1'
-            }, {
-              id: 8,
-              label: '二级 3-2',
-              children: [{
-                id: 11,
-                label: '三级 3-2-1'
-              }, {
-                id: 12,
-                label: '三级 3-2-2'
-              }, {
-                id: 13,
-                label: '三级 3-2-3'
-              }]
-            }]
-          }]
-        }
-      }
+      list: Array
     },
     components: {
       treeMenu
     },
-    data () {
-      return {
-
-      }
-    },
     methods: {
+      // 节点被点击时的回调
       emitNodeClicked (data, component) {
         this.$emit('node-click', data, component)
-      }
+      },
+      // 节点选中状态发生变化时的回调
+      emitCheckChange (data, checked, isChildHasChecked) {
+        this.$emit('check-change', data, checked, isChildHasChecked)
+      },
+      // 当复选框被点击的时候触发 checkedState:{checkedNodes, checkedKeys, halfCheckedNodes, halfCheckedKeys}
+      emitCheck (data, checkedState) {
+        this.$emit('check', data, checkedState)
+      },
+      // 当前选中节点变化时触发的事件
+      emitCurrentChange (data, curNode) {
+        this.$emit('check', data, curNode)
+      },
+      // 节点被展开时触发的事件
+      emitNodeExpand (data, curNode, component) {
+        this.$emit('check', data, curNode, component)
+      },
+      // 节点被关闭时触发的事件
+      emitNodeCollapse (data, curNode, component) {
+        this.$emit('check', data, curNode, component)
+      },
     }
   }
 </script>

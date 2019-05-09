@@ -97,14 +97,14 @@
       },
       checkboxClass () {
         if (this.checked === true) {
-          return 'iconround-check_box-px checked'
+          return 'iconcheckbox-xuanzhong checked'
         } else if (this.checked === 'some') {
           return 'iconcheckbox-xuanzhongbufen some'
         } else {
           if (this.justUnselected) {
-            return 'iconround-check_box_outl just-unchecked'
+            return 'iconcheckbox-weixuan just-unchecked'
           } else {
-            return 'iconround-check_box_outl unchecked'
+            return 'iconcheckbox-weixuan unchecked'
           }
         }
       }
@@ -234,16 +234,9 @@
   .tree-content:hover {
     background: #f5f7fa;
   }
-
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: height 0.5s;
-  }
-  .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
-    height: 0;
-  }
   .tree-checkbox-icon {
     font-size: 18px;
+    color: #dcdfe6;
   }
   .tree-checkbox-icon.checked,
   .tree-checkbox-icon.just-unchecked,
