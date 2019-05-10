@@ -2,7 +2,8 @@
   <div class="tree">
     <div v-for="(item, index) in list"
          :key="index">
-      <treeMenu :list="item" />
+      <treeMenu :list="item"
+                v-bind="$attrs" />
     </div>
   </div>
 </template>
@@ -18,7 +19,77 @@
     components: {
       treeMenu
     },
+    created () {
+      this.init()
+    },
     methods: {
+      init () {
+        // console.log(this.list)
+        let list = this.list
+        for (let i = 0; i < list.length; i++) {
+          let item = list[i]
+          if (i === 2) {
+            this.handleChildrens(item)
+          }
+        }
+      },
+      // 处理子树
+      handleChildrens (data) {
+        console.log('111', data)
+        const defaultCheckedKeys = this.$attrs['default-checked-keys'] || []
+        let children = data.children || []
+        let checkedArr = []
+        for (let i = 0; i < children.length; i++) {
+          let item = children[i]
+          if (defaultCheckedKeys.includes(item.id)) {
+            item.checked = true
+          }
+          checkedArr.push({
+            id: item.id,
+            label: item.label,
+            checked: item.checked
+          })
+          console.log(item)
+          // 递归
+          if (item.children && item.children.length > 0) {
+            // console.log(checkedArr)
+            this.handleChildrens(item)
+          }
+          console.log('2222', item)
+        }
+        if (checkedArr.every((curVal) => { return curVal.checked === true })) {
+          data.checked = true
+        } else if (checkedArr.every((curVal) => { return curVal.checked === false })) {
+          data.checked = false
+        } else {
+          data.checked = 'some'
+        }
+        // console.log(checkedArr)
+      },
+      // 处理父树
+      handleParents (component) {
+        let parent = component.$parent
+        while (parent.$options._componentTag !== 'treeList') {
+          let parentChildren = parent.$children
+          let childrenCheckState = []
+          for (let i = 0; i < parentChildren.length; i++) {
+            let item = parentChildren[i]
+            childrenCheckState.push({
+              id: item.list.id,
+              label: item.list.label,
+              checked: item.checked
+            })
+          }
+          if (childrenCheckState.every((curVal) => { return curVal.checked === true })) {
+            parent.checked = true
+          } else if (childrenCheckState.every((curVal) => { return !(curVal.checked) })) {
+            parent.checked = false
+          } else {
+            parent.checked = 'some'
+          }
+          parent = parent.$parent
+        }
+      },
       // 节点被点击时的回调
       emitNodeClicked (data, component) {
         this.$emit('node-click', data, component)

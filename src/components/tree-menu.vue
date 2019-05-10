@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="treeitem"
-         @click.stop="showSubMenu(list, $event)">
+         @click.stop="handleClicked(list, $event)">
       <div class="tree-content"
            :style="{ 'padding-left': (depth - 1) * 18 + 'px' }"
            :class="isClicked?'is-expanded is-current':''">
@@ -25,6 +25,7 @@
         <treeMenu v-show="open"
                   v-if="isFolder"
                   :list="item2"
+                  v-bind="$attrs"
                   :depth="increaseDepth()" />
       </div>
     </div>
@@ -41,46 +42,7 @@
         type: Number,
         default: 1
       },
-      list: {
-        type: Object,
-        default: () => {
-          [{
-            label: '一级 1',
-            children: [{
-              label: '二级 1-1',
-              children: [{
-                label: '三级 1-1-1'
-              }]
-            }]
-          }, {
-            label: '一级 2',
-            children: [{
-              label: '二级 2-1',
-              children: [{
-                label: '三级 2-1-1'
-              }]
-            }, {
-              label: '二级 2-2',
-              children: [{
-                label: '三级 2-2-1'
-              }]
-            }]
-          }, {
-            label: '一级 3',
-            children: [{
-              label: '二级 3-1',
-              children: [{
-                label: '三级 3-1-1'
-              }]
-            }, {
-              label: '二级 3-2',
-              children: [{
-                label: '三级 3-2-1'
-              }]
-            }]
-          }]
-        }
-      }
+      list: Object
     },
     data () {
       return {
@@ -111,12 +73,19 @@
     },
     created () {
       rootTree = this.findNode(this, 'treeList')
+      this.init()
     },
     methods: {
       increaseDepth () {
         return this.depth + 1
       },
-      showSubMenu (data, event) {
+      init () {
+        if (this.list.checked) {
+          this.checked = this.list.checked
+          delete this.list.checked
+        }
+      },
+      handleClicked (data, event) {
         const role = event.target.dataset.role
         // 判断点击的是checkbox组件，还是treeMenu组件
         if (role === 'checkbox' || role === 'label') {
@@ -164,7 +133,7 @@
       handleParentNodes (component) {
         let parent = component.$parent
         while (parent.$options._componentTag !== 'treeList') {
-          let parentChildren = parent.$children
+          let parentChildren = parent.$children || []
           let childrenCheckState = []
           for (let i = 0; i < parentChildren.length; i++) {
             let item = parentChildren[i]

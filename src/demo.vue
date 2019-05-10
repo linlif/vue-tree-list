@@ -1,7 +1,9 @@
 <template>
   <div>
     <treeList :list="list"
-              @node-click="nodeClicked" />
+              @node-click="nodeClicked"
+              :default-expanded-keys="[2, 3]"
+              :default-checked-keys="[7,11,12,13]" />
   </div>
 </template>
 
