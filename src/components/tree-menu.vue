@@ -87,7 +87,7 @@
         isClicked: false,
         isCurrent: true,
         open: false,
-        checked: '',
+        checked: false,
         justUnselected: false // 是否刚刚取消的CheckBox，true时高亮边框，false时置灰边框
       }
     },
@@ -100,7 +100,7 @@
           return 'iconcheckbox-xuanzhong checked'
         } else if (this.checked === 'some') {
           return 'iconcheckbox-xuanzhongbufen some'
-        } else {
+        } else if (this.checked === false) {
           if (this.justUnselected) {
             return 'iconcheckbox-weixuan just-unchecked'
           } else {
@@ -118,48 +118,39 @@
       },
       showSubMenu (data, event) {
         const role = event.target.dataset.role
-        // 如果点击的是checkbox
+        // 判断点击的是checkbox组件，还是treeMenu组件
         if (role === 'checkbox' || role === 'label') {
+          this.checked === 'some' ? this.checked = true : this.checked = !this.checked
           let treeMenu = this.findNode(this, 'treeMenu')
-          this.checked = !this.checked
-          this.selectChildrenNodes(treeMenu, this.checked)
-          this.handleSelect(treeMenu)
-          // 重置其他节点状态
-          this.nomalizeNodes(this, rootTree, true)
-          this.justUnselected = true
+          this.handleChildrenNodes(treeMenu, this.checked)
+          this.handleParentNodes(treeMenu)
+          this.nomalizeNodes(this, true)
           selectedId = this.list.id
+          this.justUnselected = true
           return
         } else {
-          // 抛出事件
           rootTree.emitNodeClicked(data, this)
-          // 打开/关闭菜单
-          if (this.isFolder) {
-            this.open = !this.open
-          }
-          // 重置其他节点状态
-          this.nomalizeNodes(this, rootTree, false)
+          if (this.isFolder) this.open = !this.open
+          this.nomalizeNodes(this, false)
           selectedId = this.list.id
           this.isClicked = true
           this.isCurrent = !this.isCurrent
         }
       },
       // 递归查找name为who的组件
-      findNode (which, who = 'treeMenu') {
+      findNode (that, who = 'treeMenu') {
         let ok = false
-        let that = which
         while (!ok) {
-          // 根据组件name来判断
           if (that.$options._componentTag === who) {
             ok = true
-            // 交换两者的数据
             break
           }
           that = that.$parent
         }
         return that
       },
-      // 选中/取消所有子节点
-      selectChildrenNodes (component, state) {
+      // 处理子组件的选中状态
+      handleChildrenNodes (component, state) {
         let nodeStack = component.$children
         for (let i = 0; i < nodeStack.length; i++) {
           let item = nodeStack[i]
@@ -169,34 +160,41 @@
           }
         }
       },
-      // 处理组件的半选中状态
-      handleSelect (component) {
+      // 处理父组件的选中状态
+      handleParentNodes (component) {
         let parent = component.$parent
-        let allChecked = true
         while (parent.$options._componentTag !== 'treeList') {
           let parentChildren = parent.$children
+          let childrenCheckState = []
           for (let i = 0; i < parentChildren.length; i++) {
             let item = parentChildren[i]
-            if (!item.checked || item.checked === 'some') {
-              allChecked = false
-            }
+            childrenCheckState.push({
+              id: item.list.id,
+              label: item.list.label,
+              checked: item.checked
+            })
           }
-          allChecked ? parent.checked = true : parent.checked = 'some'
+          if (childrenCheckState.every((curVal) => { return curVal.checked === true })) {
+            parent.checked = true
+          } else if (childrenCheckState.every((curVal) => { return !(curVal.checked) })) {
+            parent.checked = false
+          } else {
+            parent.checked = 'some'
+          }
           parent = parent.$parent
         }
       },
-      // 未点击的节点置为未选中状态，点击非CheckBox取消边框高亮
-      nomalizeNodes (which, treeParent, isCheckBox = false) {
-        const that = which
-        for (let i = 0; i < treeParent.$children.length; i++) {
-          let nodeStack = [treeParent.$children[i]]
+      // 重置组件的点击状态
+      nomalizeNodes (which, isCheckBox = false) {
+        for (let i = 0; i < rootTree.$children.length; i++) {
+          let nodeStack = [rootTree.$children[i]]
           while (nodeStack.length != 0) {
             let item = nodeStack.shift()
-            if (selectedId !== that.list.id) {
+            if (selectedId !== which.list.id) {
               item.isClicked = false
               item.justUnselected = false
             } else {
-              if (!isCheckBox) {
+              if (!isCheckBox) { // 点击checkbox外的组件，justUnselected为false
                 item.justUnselected = false
               }
             }
@@ -211,12 +209,6 @@
 </script>
 
 <style scoped>
-  .treeroot {
-    padding-left: 0;
-  }
-  .tree {
-    /* padding-left: 18px; */
-  }
   .treeitem {
     user-select: none;
   }
@@ -226,7 +218,6 @@
     align-items: center;
     height: 26px;
     cursor: pointer;
-    /* margin-left: 18px; */
   }
   .is-expanded {
     background: #f5f7fa;
