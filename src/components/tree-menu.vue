@@ -1,33 +1,31 @@
 <template>
-  <div>
-    <div class="treeitem"
-         @click.stop="handleClicked(list, $event)">
-      <div class="tree-content"
-           :style="{ 'padding-left': (depth - 1) * 18 + 'px' }"
-           :class="isClicked?'is-expanded is-current':''">
-        <i v-if="list.children"
-           class="iconfont"
-           :class="isCurrent?'iconsanjiaoright':'iconsanjiaodown'"></i>
-        <input data-role="checkbox"
-               type="checkbox"
-               :id="'checkbox'+list.id"
-               style="display:none"
-               v-model="checked">
-        <label data-role="checkbox"
-               class="iconfont tree-checkbox-icon"
-               :class="checkboxClass"
-               :for="'label'+list.id"></label>
-        <span class="tree-label">{{list.label}}</span>
-      </div>
-      <div class="group"
-           v-for="(item2, index) in list.children"
-           :key="index">
-        <treeMenu v-show="open"
-                  v-if="isFolder"
-                  :list="item2"
-                  v-bind="$attrs"
-                  :depth="increaseDepth()" />
-      </div>
+  <div class="treeitem"
+       @click.stop="handleClicked(list, $event)">
+    <div class="tree-content"
+         :style="{ 'padding-left': (depth - 1) * 18 + 'px' }"
+         :class="isClicked?'is-expanded is-current':''">
+      <i v-if="list.children"
+         class="iconfont"
+         :class="isCurrent?'iconsanjiaoright':'iconsanjiaodown'"></i>
+      <input data-role="checkbox"
+             type="checkbox"
+             :id="'checkbox'+list.id"
+             style="display:none"
+             v-model="checked">
+      <label data-role="checkbox"
+             class="iconfont tree-checkbox-icon"
+             :class="checkboxClass"
+             :for="'label'+list.id"></label>
+      <span class="tree-label">{{list.label}}</span>
+    </div>
+    <div class="group"
+         v-for="(item2, index) in list.children"
+         :key="index">
+      <treeMenu v-show="open"
+                v-if="isFolder"
+                :list="item2"
+                v-bind="$attrs"
+                :depth="increaseDepth()" />
     </div>
   </div>
 </template>
@@ -82,7 +80,7 @@
       init () {
         if (this.list.checked) {
           this.checked = this.list.checked
-          delete this.list.checked
+          // delete this.list.checked
         }
       },
       handleClicked (data, event) {

@@ -3,7 +3,7 @@
     <treeList :list="list"
               @node-click="nodeClicked"
               :default-expanded-keys="[2, 3]"
-              :default-checked-keys="[7,11,12,13]" />
+              :default-checked-keys="[8,12,15,16]" />
   </div>
 </template>
 
@@ -56,7 +56,17 @@
               label: '三级 3-2-2'
             }, {
               id: 13,
-              label: '三级 3-2-3'
+              label: '四级 4-1',
+              children: [{
+                id: 14,
+                label: '四级 4-1-1'
+              }, {
+                id: 15,
+                label: '四级 4-1-2'
+              }, {
+                id: 16,
+                label: '四级 4-1-3'
+              }]
             }]
           }]
         }]
