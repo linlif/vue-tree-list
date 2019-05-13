@@ -16,7 +16,7 @@
              class="iconfont tree-checkbox-icon"
              :class="checkboxClass"
              :for="'label'+list.id"></label>
-      <span class="tree-label">{{list.label}}</span>
+      <span class="tree-label">{{list.id}}:{{list.label}}</span>
     </div>
     <div class="group"
          v-for="(item2, index) in list.children"
@@ -46,14 +46,14 @@
       return {
         isClicked: false,
         isCurrent: true,
-        open: false,
+        open: true,
         checked: false,
         justUnselected: false // 是否刚刚取消的CheckBox，true时高亮边框，false时置灰边框
       }
     },
     computed: {
       isFolder () {
-        return this.list.children && this.list.children.length
+        return this.list.children && this.list.children.length > 0
       },
       checkboxClass () {
         if (this.checked === true) {
@@ -80,7 +80,9 @@
       init () {
         if (this.list.checked) {
           this.checked = this.list.checked
-          // delete this.list.checked
+        }
+        if (this.list.expended) {
+          this.expended = this.list.expended
         }
       },
       handleClicked (data, event) {

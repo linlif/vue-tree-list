@@ -1,18 +1,15 @@
 <template>
   <div class="tree">
-    <!-- <div v-for="(item, index) in list"
-         :key="index"> -->
     <treeMenu v-for="(item, index) in list"
               :key="index"
               :list="item"
               v-bind="$attrs" />
-    <!-- </div> -->
   </div>
 </template>
 
 <script>
   import treeMenu from './tree-menu'
-
+  let parentData = {}
   export default {
     name: 'treeList',
     props: {
@@ -27,83 +24,58 @@
     methods: {
       init () {
         let list = this.list
-        for (let i = 0; i < list.length; i++) {
-          let item = list[i]
-          if (i === 2) {
-            // this.initData(item)
-            this.handleChildrens(item)
+        for (let i = 0, iLen = list.length; i < iLen; i++) {
+          this.setState(list[i], false)
+          this.check(list[i], true)
+        }
+      },
+      setState (node, state) {
+        if (!node) return
+        node.checked = state
+        parentData[node.id] = node // 缓存节点对象
+        if (node.children && node.children.length > 0) {
+          for (let i = 0; i < node.children.length; i++) {
+            let item = node.children[i]
+            item.parent = node.id // 保存父节点id
+            item.checked = state
+            this.setState(item, state)
           }
         }
       },
-      initData (node) {
-        // 非递归深度优先遍历（借助栈实现）
-        if (!node || !node.children) { return }
-        let _stack = [] // 借助一个栈
-        _stack.unshift(node);
-        while (_stack && _stack.length) {
-          let _curNode = _stack.shift() // 推出栈顶元素
-          // console.log(_curNode.id);
-          if (_curNode.children && _curNode.children.length) {
-            _stack = _curNode.children.concat(_stack);
+      check (node, state) {
+        if (!node) return
+        const arr = this.$attrs['default-checked-keys']
+        if (arr.indexOf(node.id) !== -1) {
+          this.setState(node, state)
+        }
+        // 递归选中children及其子节点
+        if (node.children && node.children.length > 0) {
+          for (let i = 0; i < node.children.length; i++) {
+            let item = node.children[i]
+            this.check(item, state)
           }
         }
+        // 处理父节点的选中状态
+        this.checkParent(node)
       },
-      // 查找所有子节点
-      findChildrens (node) {
-        let id = node.id
-        // 非递归广度优先遍历（借助队列实现）
-        if (!node || !node.children) { return; }
-        let _queue = []; // 借助一个队列
-        let arr = []
-        _queue.push(node);
-        while (_queue.length) {
-          let _curNode = _queue.shift(); // 推出队头元素
-          console.log(_curNode.id);
-          id !== _curNode.id ? arr.push(_curNode) : ''
-          if (_curNode.children && _curNode.children.length) {
-            _queue = _queue.concat(_curNode.children);
-          }
-        }
-        console.log(arr)
-        return arr
-      },
-      // 处理子树
-      handleChildrens (data) {
-        const defaultCheckedKeys = this.$attrs['default-checked-keys'] || []
-        let children = data.children || []
-        let checkedArr = []
-        for (let i = 0; i < children.length; i++) {
+      checkParent (node) {
+        let parent = parentData[node.parent] || {}
+        let children = parent.children || []
+        let checkedNum = 0, unCheckedNum = 0;
+        for (let i = 0, iL = children.length; i < iL; i++) {
           let item = children[i]
-          item.$parent = data
-          if (defaultCheckedKeys.includes(item.id)) {
-            item.checked = true
-          }
-          // 递归
-          if (item.children && item.children.length > 0) {
-            this.handleChildrens(item)
+          if (item.checked === true) {
+            checkedNum++
+          } else if (!item.checked) {
+            unCheckedNum++
           }
         }
-      },
-      // 处理父树
-      handleParents (data) {
-        let parent = data.$parent
-        while (parent && parent.length !== 0) {
-          let parentChildren = parent.children
-          let childrenCheckState = []
-          for (let i = 0; i < parentChildren.length; i++) {
-            let item = parentChildren[i]
-            childrenCheckState.push({
-              checked: item.checked
-            })
-          }
-          if (childrenCheckState.every((curVal) => { return curVal.checked === true })) {
-            parent.checked = true
-          } else if (childrenCheckState.every((curVal) => { return !(curVal.checked) })) {
-            parent.checked = false
-          } else {
-            parent.checked = 'some'
-          }
-          parent = parent.$parent
+        if (checkedNum === children.length) {
+          parent.checked = true
+        } else if (unCheckedNum === children.length) {
+          parent.checked = false
+        } else {
+          parent.checked = 'some'
         }
       },
       // 节点被点击时的回调
