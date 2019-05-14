@@ -2,8 +2,9 @@
   <div>
     <treeList :list="list"
               @node-click="nodeClicked"
-              :default-expanded-keys="[2, 3]"
-              :default-checked-keys="[5,6,14]" />
+              :default-expanded-keys="[2, 7]"
+              :default-checked-keys="[5,6,14]"
+              :indent="16" />
   </div>
 </template>
 

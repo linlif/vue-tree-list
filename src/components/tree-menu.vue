@@ -2,11 +2,11 @@
   <div class="treeitem"
        @click.stop="handleClicked(list, $event)">
     <div class="tree-content"
-         :style="{ 'padding-left': (depth - 1) * 18 + 'px' }"
+         :style="{ 'padding-left': (depth - 1) * indent + 'px' }"
          :class="isClicked?'is-expanded is-current':''">
       <i v-if="list.children"
          class="iconfont"
-         :class="isCurrent?'iconsanjiaoright':'iconsanjiaodown'"></i>
+         :class="expended?'iconsanjiaodown':'iconsanjiaoright'"></i>
       <input data-role="checkbox"
              type="checkbox"
              :id="'checkbox'+list.id"
@@ -21,10 +21,11 @@
     <div class="group"
          v-for="(item2, index) in list.children"
          :key="index">
-      <treeMenu v-show="open"
+      <treeMenu v-show="expended"
                 v-if="isFolder"
                 :list="item2"
                 v-bind="$attrs"
+                :indent="indent"
                 :depth="increaseDepth()" />
     </div>
   </div>
@@ -40,13 +41,13 @@
         type: Number,
         default: 1
       },
-      list: Object
+      list: Object,
+      indent: Number
     },
     data () {
       return {
         isClicked: false,
-        isCurrent: true,
-        open: true,
+        expended: false,
         checked: false,
         justUnselected: false // 是否刚刚取消的CheckBox，true时高亮边框，false时置灰边框
       }
@@ -99,11 +100,11 @@
           return
         } else {
           rootTree.emitNodeClicked(data, this)
-          if (this.isFolder) this.open = !this.open
+          if (this.isFolder) this.expended = !this.expended
           this.nomalizeNodes(this, false)
           selectedId = this.list.id
           this.isClicked = true
-          this.isCurrent = !this.isCurrent
+          // this.expended = !this.expended
         }
       },
       // 递归查找name为who的组件
